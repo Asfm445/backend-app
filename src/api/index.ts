@@ -5,7 +5,7 @@ import { UserUseCase } from "../usecase/user_usecase";
 import { UserController } from "./controller";
 import { User } from "../domain/models/user";
 import { errorHandler, requestLogger, responseLogger } from "./middleware";
-import { log } from "../utils/logger";
+import { log } from "../api/utils/logger";
 
 const app = express();
 

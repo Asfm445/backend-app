@@ -1,6 +1,6 @@
 import morgan from "morgan";
 import { Request, Response, NextFunction } from "express";
-import { httpDebug } from "../utils/logger";
+import { httpDebug } from "../api/utils/logger";
 import {
   BadRequestError,
   NotFoundError,
@@ -36,6 +36,7 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
     if ((err as any).details) payload.details = (err as any).details;
   } else if (err instanceof NotFoundError) {
     status = 404;
+    if ((err as any).details) payload.details = (err as any).details;
   } else if (err?.type === "entity.parse.failed" || err instanceof SyntaxError) {
     // body-parser / JSON parse errors
     status = 400;

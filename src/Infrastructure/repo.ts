@@ -11,7 +11,6 @@ export class InMemoryUserRepository implements UserRepository {
 
   insert(user: User): void {
     this.users.push(user);
-    console.log("User inserted:", user.name);
   }
 
   find(email: string): User | undefined {
