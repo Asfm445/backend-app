@@ -10,25 +10,30 @@ export class UserUseCase {
     this.repo = repo; // injected repository
   }
 
-  register(user: User): string {
-    const existing = this.repo.find(user.email);
+  // Register new user
+  async register(user: User): Promise<string> {
+    const existing = await this.repo.find(user.email);
+
     if (existing) {
       throw new BadRequestError("User already exists");
     }
-    this.repo.insert(user);
+
+    await this.repo.insert(user);
     return "User registered successfully!";
   }
 
-  login(email: string, password: string): string {
-    const user = this.repo.find(email);
+  // Login user
+  async login(email: string, password: string): Promise<string> {
+    const user = await this.repo.find(email);
+
     if (!user) {
       throw new NotFoundError("User not found");
     }
-    // const t = 6 / 0;
-    // if (!Number.isFinite(t)) throw new Error("Division by zero");
+
     if (user.password !== password) {
       throw new BadRequestError("Invalid password");
     }
+
     return `Welcome ${user.name}!`;
   }
 }

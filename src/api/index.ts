@@ -1,27 +1,33 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
-import { InMemoryUserRepository } from "../Infrastructure/repo";
+import mongoose from "mongoose";
+import { MongoUserRepository } from "../Infrastructure/MongoUserRepository"; // new
 import { UserUseCase } from "../usecase/user_usecase";
 import { UserController } from "./controller";
-import { User } from "../domain/models/user";
 import { errorHandler, requestLogger, responseLogger } from "./middleware";
 import { log } from "../api/utils/logger";
 
 const app = express();
 
-// enable DEBUG logs by setting DEBUG env var when running, e.g.:
-// DEBUG=app:* npm run dev
-log.info("starting app");
+// Start-up logs
+log.info("🚀 Starting app...");
 
-// use morgan-based request logger and response timing logger
+// Middleware
 app.use(requestLogger);
 app.use(responseLogger);
-
 app.use(bodyParser.json());
 
-// Dependency injection setup
-const db: User[] = [];
-const userRepo = new InMemoryUserRepository(db);
+// MongoDB connection
+mongoose
+  .connect("mongodb://localhost:27017/userdb")
+  .then(() => log.info("✅ Connected to MongoDB"))
+  .catch((err) => {
+    log.error("❌ MongoDB connection failed:", err);
+    process.exit(1);
+  });
+
+// Dependency injection
+const userRepo = new MongoUserRepository(); // now uses MongoDB instead of memory
 const userUseCase = new UserUseCase(userRepo);
 const userController = new UserController(userUseCase);
 
@@ -32,6 +38,7 @@ app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
 
+// Error handling
 app.use(errorHandler);
 
 // Start server
