@@ -5,6 +5,7 @@ export interface DbUser extends Document {
   email: string;
   password: string;
   age?: number;
+  role: string;
 }
 
 const UserSchema = new Schema<DbUser>({
@@ -28,6 +29,12 @@ const UserSchema = new Schema<DbUser>({
     type: Number,
     min: [18, "Minimum age is 18"],
     max: [100, "Maximum age is 100"],
+  },
+  role: {
+    type: String,
+    required: true,
+    default: "user",
+    enum: ["superadmin", "admin", "user"], // optional but recommended
   },
 });
 

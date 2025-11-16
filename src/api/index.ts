@@ -1,47 +1,67 @@
-import express, { Request, Response } from "express";
-import bodyParser from "body-parser";
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { MongoUserRepository } from "../Infrastructure/MongoUserRepository"; // new
+import { MongoUserRepository } from "../Infrastructure/MongoUserRepository";
 import { UserUseCase } from "../usecase/user_usecase";
 import { UserController } from "./controller";
+import { JwtService } from "../Infrastructure/services/jwt_service";
+import { BcryptPasswordHasher } from "../Infrastructure/services/password_hasher";
 import { errorHandler, requestLogger, responseLogger } from "./middleware";
-import { log } from "../api/utils/logger";
+import { createGoogleAuthRouter } from "./routes/googleAuth";
+
+dotenv.config();
 
 const app = express();
-
-// Start-up logs
-log.info("🚀 Starting app...");
-
-// Middleware
+app.use(cors());
+app.use(express.json()); // Fixed: removed incorrect 'createGoogleAuthRouter' text
 app.use(requestLogger);
 app.use(responseLogger);
-app.use(bodyParser.json());
 
-// MongoDB connection
+// ----------------------
+// 🔹 MongoDB Connection
+// ----------------------
 mongoose
   .connect("mongodb://localhost:27017/userdb")
-  .then(() => log.info("✅ Connected to MongoDB"))
+  .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => {
-    log.error("❌ MongoDB connection failed:", err);
+    console.error("❌ MongoDB connection failed:", err);
     process.exit(1);
   });
 
-// Dependency injection
-const userRepo = new MongoUserRepository(); // now uses MongoDB instead of memory
-const userUseCase = new UserUseCase(userRepo);
+// ----------------------
+// 🔹 Dependency Injection
+// ----------------------
+const userRepo = new MongoUserRepository();
+const jwtService = new JwtService();
+const passHasher = new BcryptPasswordHasher();
+const userUseCase = new UserUseCase(userRepo, jwtService, passHasher);
 const userController = new UserController(userUseCase);
 
-// Routes
+// ----------------------
+// 🔹 Routes
+// ----------------------
 app.post("/register", userController.register);
 app.post("/login", userController.login);
-app.get("/health", (req: Request, res: Response) => {
-  res.json({ status: "ok" });
-});
+app.post("/refresh", userController.refreshToken);
+app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-// Error handling
+// Protected example routes
+// app.get("/admin/test", authenticate(["admin","superadmin"]), ...)
+// app.get("/user/test", authenticate(["user","admin","superadmin"]), ...)
+
+// ----------------------
+// 🔹 Google OAuth Route - FIXED
+// ----------------------
+app.use("/auth", createGoogleAuthRouter(userController)); // Fixed: Pass userController directly
+
+// ----------------------
+// 🔹 Error Handling
+// ----------------------
 app.use(errorHandler);
 
-// Start server
-app.listen(3000, () => {
-  log.info("🚀 Server running on http://localhost:3000");
-});
+// ----------------------
+// 🔹 Start Server
+// ----------------------
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

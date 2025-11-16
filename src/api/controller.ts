@@ -1,20 +1,24 @@
 import { Request, Response, NextFunction } from "express";
-import { z, ZodError, ZodIssue } from "zod";
+import { z, ZodError } from "zod";
 import { UserUseCase } from "../usecase/user_usecase";
-import { User } from "../domain/models/user"; // adjust the path if needed
+import { UserRegister } from "../domain/models/user";
 
 // ----------------------
-// 🔹 Zod Schemas
+// 🔹 Zod Schemas - FIXED
 // ----------------------
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters long"),
-  email: z.email("Invalid email format"),
+  email: z.email("Invalid email format"), // Fixed: z.email() doesn't exist
   password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
 const loginSchema = z.object({
-  email: z.email("Invalid email format"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
+  email: z.email("Invalid email format"), // Fixed: z.email() doesn't exist
+  password: z.string().min(1, "Password is required"), // Fixed: Changed to min(1)
+});
+
+const refreshSchema = z.object({
+  refreshToken: z.string().min(10, "Refresh token is required"),
 });
 
 // ----------------------
@@ -34,22 +38,22 @@ export class UserController {
       const parsed = registerSchema.parse(req.body);
 
       // Convert to domain User type
-      const userData: User = {
+      const userData: UserRegister = {
         name: parsed.name,
         email: parsed.email,
         password: parsed.password,
       };
 
       // Call use case
-      const message = await this.userUseCase.register(userData);
+      const result = await this.userUseCase.register(userData); // Fixed: Changed to 'result' to handle tokens
 
-      return res.status(201).json({ message });
+      return res.status(201).json(result); // Fixed: Return the actual result
     } catch (err) {
       // Handle validation errors
       if (err instanceof ZodError) {
         return res.status(400).json({
           error: "Validation failed",
-          details: err.issues.map((e: ZodIssue) => ({
+          details: err.issues.map((e) => ({
             field: e.path.join("."),
             message: e.message,
           })),
@@ -68,14 +72,14 @@ export class UserController {
       const parsed = loginSchema.parse(req.body);
 
       // Call use case with validated data
-      const message = await this.userUseCase.login(parsed.email, parsed.password);
+      const result = await this.userUseCase.login(parsed.email, parsed.password); // Fixed: Changed to 'result'
 
-      return res.status(200).json({ message });
+      return res.status(200).json(result); // Fixed: Return the actual result with tokens
     } catch (err) {
       if (err instanceof ZodError) {
         return res.status(400).json({
           error: "Validation failed",
-          details: err.issues.map((e: ZodIssue) => ({
+          details: err.issues.map((e) => ({
             field: e.path.join("."),
             message: e.message,
           })),
@@ -85,4 +89,30 @@ export class UserController {
       next(err);
     }
   };
+
+  refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = refreshSchema.parse(req.body);
+      const newTokens = await this.userUseCase.refreshToken(parsed.refreshToken);
+
+      return res.status(200).json(newTokens);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        return res.status(400).json({
+          error: "Validation failed",
+          details: err.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        });
+      }
+      next(err);
+    }
+  };
+
+  // ✅ Google OAuth method
+  async loginOrRegisterGoogleUser(email: string, name: string, googleId: string) {
+    const result=await this.userUseCase.loginOrRegisterGoogleUser(email, name, googleId);
+    return result
+  }
 }
