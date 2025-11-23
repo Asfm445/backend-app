@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodError } from "zod";
-import { UserUseCase } from "../usecase/user_usecase";
-import { UserRegister } from "../domain/models/user";
+import { UserUseCase } from "../../usecase/user_usecase";
+import { UserRegister } from "../../domain/models/user";
 
 // ----------------------
 // 🔹 Zod Schemas - FIXED
@@ -116,3 +116,110 @@ export class UserController {
     return result
   }
 }
+
+/**
+ * @openapi
+ * /register:
+ *   post:
+ *     summary: Register a new user
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, password]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       "201":
+ *         description: User created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       "400":
+ *         description: Validation or bad request
+ */
+
+/**
+ * @openapi
+ * /login:
+ *   post:
+ *     summary: Login user and get tokens
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *         description: Tokens returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       "400":
+ *         description: Invalid credentials
+ */
+
+/**
+ * @openapi
+ * /refresh:
+ *   post:
+ *     summary: Refresh access and refresh tokens
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [refreshToken]
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *         description: New tokens returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       "400":
+ *         description: Invalid or missing refresh token
+ *       "401":
+ *         description: Refresh token expired or invalid
+ */

@@ -1,6 +1,46 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
-import { UserController } from "../controller";
+import { UserController } from "../controllers/controller";
+
+/**
+ * @openapi
+ * /google:
+ *   post:
+ *     summary: Authenticate user with Google
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - code
+ *               - codeVerifier
+ *               - redirect_uri
+ *             properties:
+ *               code:
+ *                 type: string
+ *               codeVerifier:
+ *                 type: string
+ *               redirect_uri:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *         description: User authenticated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       "400":
+ *         description: Missing required OAuth parameters or invalid authorization code
+ *       "500":
+ *         description: Server configuration error or Google OAuth failed
+ */
 
 export const createGoogleAuthRouter = (userController: UserController) => {
   const router = express.Router();

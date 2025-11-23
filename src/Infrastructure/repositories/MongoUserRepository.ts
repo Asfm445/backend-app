@@ -1,8 +1,8 @@
-import { UserRepository } from "../domain/interfaces/repo";
-import { UserModel, DbUser } from "../Infrastructure/models/UserModel";
-import { User, Token, UserRegister, GoogleUserInput,GoogleUser } from "../domain/models/user";
-import { TokenModel } from "../Infrastructure/models/token_model";
-import { GoogleUserModel, DbGoogleUser } from "./models/GoogleUserModel";
+import { UserRepository } from "../../domain/interfaces/repo";
+import { UserModel, DbUser } from "../../Infrastructure/models/UserModel";
+import { User, Token, UserRegister, GoogleUserInput,GoogleUser } from "../../domain/models/user";
+import { TokenModel } from "../../Infrastructure/models/token_model";
+import { GoogleUserModel, DbGoogleUser } from "../models/GoogleUserModel";
 import mongoose from "mongoose";
 
 export class MongoUserRepository implements UserRepository {
