@@ -1,8 +1,86 @@
 import { Request, Response, NextFunction } from "express";
 import { ProductUseCase } from "../../usecase/product_usecase";
 import { Product } from "../../domain/models/product";
-import { BadRequestError } from "../../domain/interfaces/Exceptions";
 
+/**
+ * @openapi
+ * /api/v1/products:
+ *   get:
+ *     summary: List all products with filtering, pagination and sorting
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - name: name
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: partial match on product name
+ *       - name: category
+ *         in: query
+ *         schema:
+ *           type: string
+ *       - name: minPrice
+ *         in: query
+ *         schema:
+ *           type: number
+ *       - name: maxPrice
+ *         in: query
+ *         schema:
+ *           type: number
+ *       - name: skip
+ *         in: query
+ *         schema:
+ *           type: integer
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *       - name: sort
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Sort spec, e.g. "price:asc,createdAt:desc"
+ *     responses:
+ *       "200":
+ *         description: Paginated products response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       imageUrl:
+ *                         type: string
+ *                       price:
+ *                         type: number
+ *                       ownerId:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     skip:
+ *                       type: integer
+ */
+
+/**
+ * Product controller
+ */
 export class ProductController {
   private productUseCase: ProductUseCase;
 
@@ -13,7 +91,7 @@ export class ProductController {
   // Create a new product (owner is the authenticated user)
   /**
    * @openapi
-   * /products:
+   * /api/v1/products:
    *   post:
    *     security:
    *       - BearerAuth: []
@@ -73,7 +151,7 @@ export class ProductController {
   // Get product by ID
   /**
    * @openapi
-   * /products/{id}:
+   * /api/v1/products/{id}:
    *   get:
    *     summary: Get a product by ID
    *     tags:
@@ -88,25 +166,6 @@ export class ProductController {
    *     responses:
    *       "200":
    *         description: Product found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 id:
-   *                   type: string
-   *                 name:
-   *                   type: string
-   *                 imageUrl:
-   *                   type: string
-   *                 price:
-   *                   type: number
-   *                 ownerId:
-   *                   type: string
-   *                 category:
-   *                   type: string
-   *                 description:
-   *                   type: string
    *       "404":
    *         description: Product not found
    */
@@ -119,10 +178,10 @@ export class ProductController {
     }
   }
 
-  // List all products
+  // List all products (returns paginated payload)
   /**
    * @openapi
-   * /products:
+   * /api/v1/products:
    *   get:
    *     summary: List all products with filtering, pagination and sorting
    *     tags:
@@ -160,7 +219,40 @@ export class ProductController {
    *         description: Sort spec, e.g. "price:asc,createdAt:desc"
    *     responses:
    *       "200":
-   *         description: A list of products
+   *         description: Paginated products response
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       id:
+   *                         type: string
+   *                       name:
+   *                         type: string
+   *                       imageUrl:
+   *                         type: string
+   *                       price:
+   *                         type: number
+   *                       ownerId:
+   *                         type: string
+   *                       category:
+   *                         type: string
+   *                       description:
+   *                         type: string
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     total:
+   *                       type: integer
+   *                     limit:
+   *                       type: integer
+   *                     skip:
+   *                       type: integer
    */
   async list(req: Request, res: Response, next: NextFunction) {
     try {
@@ -193,13 +285,14 @@ export class ProductController {
         }
       }
 
-      const products = await this.productUseCase.list(
+      const result = await this.productUseCase.list(
         filter,
         parsedSkip,
         parsedLimit,
         Object.keys(sortObj).length ? sortObj : undefined
       );
-      res.status(200).json(products);
+
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }
@@ -208,7 +301,7 @@ export class ProductController {
   // Update product by ID (must be owner or allowed role)
   /**
    * @openapi
-   * /products/{id}:
+   * /api/v1/products/{id}:
    *   put:
    *     security:
    *       - BearerAuth: []
@@ -242,14 +335,6 @@ export class ProductController {
    *     responses:
    *       "200":
    *         description: Product updated successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 id:
-   *                   type: string
-   *                   description: The ID of the updated product
    *       "401":
    *         description: Authentication required
    *       "404":
@@ -270,7 +355,7 @@ export class ProductController {
   // Delete product by ID (must be owner or allowed role)
   /**
    * @openapi
-   * /products/{id}:
+   * /api/v1/products/{id}:
    *   delete:
    *     security:
    *       - BearerAuth: []
@@ -298,7 +383,7 @@ export class ProductController {
 
       const requesterId = req.user.userId;
       await this.productUseCase.delete(req.params.id, requesterId);
-      res.status(204).send(); // No content to return on successful deletion
+      res.status(204).send();
     } catch (err) {
       next(err);
     }

@@ -119,7 +119,7 @@ export class UserController {
 
 /**
  * @openapi
- * /register:
+ * /api/v1/users:
  *   post:
  *     summary: Register a new user
  *     tags:
@@ -142,20 +142,13 @@ export class UserController {
  *     responses:
  *       "201":
  *         description: User created
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
  *       "400":
  *         description: Validation or bad request
  */
 
 /**
  * @openapi
- * /login:
+ * /api/v1/auth/login:
  *   post:
  *     summary: Login user and get tokens
  *     tags:
@@ -176,22 +169,13 @@ export class UserController {
  *     responses:
  *       "200":
  *         description: Tokens returned
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 accessToken:
- *                   type: string
- *                 refreshToken:
- *                   type: string
  *       "400":
  *         description: Invalid credentials
  */
 
 /**
  * @openapi
- * /refresh:
+ * /api/v1/auth/refresh:
  *   post:
  *     summary: Refresh access and refresh tokens
  *     tags:
@@ -209,15 +193,6 @@ export class UserController {
  *     responses:
  *       "200":
  *         description: New tokens returned
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 accessToken:
- *                   type: string
- *                 refreshToken:
- *                   type: string
  *       "400":
  *         description: Invalid or missing refresh token
  *       "401":

@@ -8,26 +8,24 @@ const options: swaggerJSDoc.Options = {
       version: "1.0.0",
       description: "Demo API for clean-architecture backend",
     },
-    servers: [{ url: process.env.SWAGGER_BASE_URL ?? "http://localhost:4000" }],
+    servers: [
+      {
+        url: `${process.env.SWAGGER_BASE_URL ?? "http://localhost:4000"}/api/v1`,
+        description: "API server (versioned)",
+      },
+    ],
     components: {
       securitySchemes: {
         BearerAuth: {
           type: "http",
           scheme: "bearer",
           bearerFormat: "JWT",
-          description:
-            "Enter JWT token. Example: `eyJhbGciOiJI...` (no `Bearer ` prefix required in most UIs)",
+          description: "Paste JWT token here (no 'Bearer ' prefix required)",
         },
       },
     },
-    // Optional: enable global security for all endpoints (can be overridden per-operation)
-    // security: [{ BearerAuth: [] }],
   },
-  apis: [
-    "./src/api/controller.ts",
-    "./src/api/routes/*.ts",
-    "./src/api/controllers/*.ts",
-  ],
+  apis: ["./src/api/controllers/*.ts", "./src/api/routes/*.ts"],
 };
 
 export const swaggerSpec = swaggerJSDoc(options);

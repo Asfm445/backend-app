@@ -24,8 +24,10 @@ app.use(express.json());
 app.use(requestLogger);
 app.use(responseLogger);
 
-// Serve swagger UI at /docs
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+const API_PREFIX = "/api/v1";
+
+// Serve swagger UI at /api/v1/docs
+app.use(`${API_PREFIX}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ----------------------
 // 🔹 MongoDB Connection
@@ -53,40 +55,34 @@ const productUseCase = new ProductUseCase(productRepo); // Create an instance of
 const productController = new ProductController(productUseCase); // Create an instance of the product controller
 
 // ----------------------
-// 🔹 Routes
+// 🔹 Routes (versioned)
 // ----------------------
-app.post("/register", userController.register);
-app.post("/login", userController.login);
-app.post("/refresh", userController.refreshToken);
-app.get("/health", (req, res) => res.json({ status: "ok" }));
+// Users / Auth
+app.post(`${API_PREFIX}/users`, userController.register);
+app.post(`${API_PREFIX}/auth/login`, userController.login);
+app.post(`${API_PREFIX}/auth/refresh`, userController.refreshToken);
+app.use(`${API_PREFIX}/auth`, createGoogleAuthRouter(userController)); // google routes mounted under /api/v1/auth/*
 
 // Product routes (require authentication for mutating operations)
 const authRoles = ["user", "admin", "superadmin"];
 
 app.post(
-  "/products",
+  `${API_PREFIX}/products`,
   authenticate(authRoles),
   productController.create.bind(productController)
 ); // Create a new product
 
-app.get(
-  "/products/:id",
-  productController.getById.bind(productController)
-); // Get product by ID (public)
-
-app.get(
-  "/products",
-  productController.list.bind(productController)
-); // List all products (public)
+app.get(`${API_PREFIX}/products/:id`, productController.getById.bind(productController));
+app.get(`${API_PREFIX}/products`, productController.list.bind(productController));
 
 app.put(
-  "/products/:id",
+  `${API_PREFIX}/products/:id`,
   authenticate(authRoles),
   productController.update.bind(productController)
 ); // Update product by ID
 
 app.delete(
-  "/products/:id",
+  `${API_PREFIX}/products/:id`,
   authenticate(authRoles),
   productController.delete.bind(productController)
 ); // Delete product by ID

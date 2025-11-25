@@ -2,6 +2,15 @@ import { Product } from "../domain/models/product";
 import { ProductRepository } from "../domain/interfaces/product_repo";
 import { BadRequestError, NotFoundError } from "../domain/interfaces/Exceptions";
 
+export type PaginatedProducts = {
+  data: Product[];
+  pagination: {
+    total: number;
+    limit: number;
+    skip: number;
+  };
+};
+
 export class ProductUseCase {
   private repo: ProductRepository;
 
@@ -33,17 +42,30 @@ export class ProductUseCase {
   }
 
   // List products with optional filters/pagination/sort (adds price range)
+  // Now returns paginated result
   async list(
     filter?: Partial<Pick<Product, "name" | "category">> & { minPrice?: number; maxPrice?: number },
     skip = 0,
     limit = 20,
     sort: Record<string, 1 | -1> = { createdAt: -1 }
-  ): Promise<Product[]> {
+  ): Promise<PaginatedProducts> {
     // basic validation of pagination
     if (skip < 0) throw new BadRequestError("skip must be >= 0");
     if (limit <= 0) throw new BadRequestError("limit must be > 0");
 
-    return this.repo.findAll(filter, skip, limit, sort);
+    const [data, total] = await Promise.all([
+      this.repo.findAll(filter, skip, limit, sort),
+      this.repo.count(filter as any),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        total,
+        limit,
+        skip,
+      },
+    };
   }
 
   // Update product (optionally enforce owner check by passing requesterId)
