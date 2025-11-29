@@ -8,10 +8,11 @@ const options: swaggerJSDoc.Options = {
       version: "1.0.0",
       description: "Demo API for clean-architecture backend",
     },
+    // NOTE: do NOT include the API prefix here — keep only the host/origin.
     servers: [
       {
-        url: `${process.env.SWAGGER_BASE_URL ?? "http://localhost:4000"}/api/v1`,
-        description: "API server (versioned)",
+        url: process.env.SWAGGER_BASE_URL ?? "http://localhost:4000",
+        description: "API server (origin only)",
       },
     ],
     components: {
