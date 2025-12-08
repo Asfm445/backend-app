@@ -13,12 +13,14 @@ declare global {
 
 // Factory function to create middleware with allowed roles
 export const authenticate = (allowedRoles: string[]) => {
+  console.log("+++++++++++++++++++++++++++++ auth middleware factory ++++++++++++++++++++++++++++", allowedRoles);
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ error: "Access token required" });
       }
+      console.log("+++++++++++++++++++++++++++++ auth middleware ++++++++++++++++++++++++++++");
 
       const token = authHeader.split(" ")[1];
       const jwtService = new JwtService();

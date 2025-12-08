@@ -298,6 +298,58 @@ export class ProductController {
     }
   }
 
+  // Analytics endpoint - aggregated stats for products
+  /**
+   * @openapi
+   * /api/v1/products/analytics:
+   *   get:
+   *     security:
+   *       - BearerAuth: []
+   *     summary: Get aggregated product analytics (admin)
+   *     tags:
+   *       - Products
+   *     parameters:
+   *       - name: name
+   *         in: query
+   *         schema:
+   *           type: string
+   *         description: partial match on product name
+   *       - name: category
+   *         in: query
+   *         schema:
+   *           type: string
+   *       - name: minPrice
+   *         in: query
+   *         schema:
+   *           type: number
+   *       - name: maxPrice
+   *         in: query
+   *         schema:
+   *           type: number
+   *     responses:
+   *       "200":
+   *         description: Analytics result
+   */
+  async analytics(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) return res.status(401).json({ error: "Authentication required" });
+
+      const { name, category, minPrice, maxPrice } = req.query as Record<string, string | undefined>;
+
+      const filter: any = {};
+      if (name) filter.name = String(name);
+      if (category) filter.category = String(category);
+      if (minPrice !== undefined) filter.minPrice = Number(minPrice);
+      if (maxPrice !== undefined) filter.maxPrice = Number(maxPrice);
+
+      const stats = await this.productUseCase.analytics(filter);
+      res.status(200).json(stats);
+    } catch (err) {
+      next(err);
+    }
+    // res.status(200).json({"respose":"something"})
+  }
+
   // Update product by ID (must be owner or allowed role)
   /**
    * @openapi

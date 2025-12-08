@@ -1,5 +1,21 @@
 import { Product } from "../models/product";
 
+export type ProductAnalytics = {
+  total: number;
+  avgPrice: number | null;
+  minPrice: number | null;
+  maxPrice: number | null;
+  perCategory: Array<{
+    category: string | null;
+    count: number;
+    avgPrice: number | null;
+  }>;
+  topOwners: Array<{
+    ownerId: string;
+    count: number;
+  }>;
+};
+
 export interface ProductRepository {
   create(product: Product): Promise<Product>;
   findById(id: string): Promise<Product | undefined>;
@@ -16,4 +32,7 @@ export interface ProductRepository {
   update(id: string, updates: Partial<Product>): Promise<Product | undefined>;
   delete(id: string): Promise<void>;
   count(filter?: Partial<Pick<Product, "name" | "category" | "ownerId">> & { minPrice?: number; maxPrice?: number }): Promise<number>;
+
+  // Aggregated analytics/stats for products matching an optional filter
+  aggregateStats?(filter?: Partial<Pick<Product, "name" | "category" | "ownerId">> & { minPrice?: number; maxPrice?: number }): Promise<ProductAnalytics>;
 }

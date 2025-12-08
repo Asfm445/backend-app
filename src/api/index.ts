@@ -72,6 +72,12 @@ app.post(
   productController.create.bind(productController)
 ); // Create a new product
 
+app.get(
+  `${API_PREFIX}/products/analytics`,
+  authenticate(["admin", "superadmin"]),
+  productController.analytics.bind(productController)
+);
+
 app.get(`${API_PREFIX}/products/:id`, productController.getById.bind(productController));
 app.get(`${API_PREFIX}/products`, productController.list.bind(productController));
 
@@ -86,6 +92,9 @@ app.delete(
   authenticate(authRoles),
   productController.delete.bind(productController)
 ); // Delete product by ID
+
+// Admin-only analytics endpoint
+
 
 // ----------------------
 // 🔹 Google OAuth Route

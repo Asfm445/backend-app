@@ -1,5 +1,5 @@
 import { Product } from "../domain/models/product";
-import { ProductRepository } from "../domain/interfaces/product_repo";
+import { ProductRepository, ProductAnalytics } from "../domain/interfaces/product_repo";
 import { BadRequestError, NotFoundError } from "../domain/interfaces/Exceptions";
 
 export type PaginatedProducts = {
@@ -105,5 +105,24 @@ export class ProductUseCase {
   // Count products matching optional filter
   async count(filter?: Partial<Pick<Product, "name" | "category" | "ownerId">>): Promise<number> {
     return this.repo.count(filter);
+  }
+
+  // Analytics / aggregated statistics
+  async analytics(
+    filter?: Partial<Pick<Product, "name" | "category" | "ownerId">> & { minPrice?: number; maxPrice?: number }
+  ): Promise<ProductAnalytics> {
+    if (!this.repo.aggregateStats) {
+      // repository doesn't implement aggregation, fall back to basic computations
+      const total = await this.repo.count(filter as any);
+      return {
+        total,
+        avgPrice: null,
+        minPrice: null,
+        maxPrice: null,
+        perCategory: [],
+        topOwners: [],
+      };
+    }
+    return this.repo.aggregateStats(filter as any);
   }
 }
