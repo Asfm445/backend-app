@@ -15,6 +15,7 @@ import { MongoProductRepository } from "../Infrastructure/repositories/MongoProd
 import { ProductUseCase } from "../usecase/product_usecase"; // Import the product use case
 import { ProductController } from "./controllers/product_controller"; // Import the product controller
 import { authenticate } from "./middlewares/auth_middlewares";
+import  { upload } from "./middlewares/upload"
 
 dotenv.config();
 
@@ -69,9 +70,9 @@ const authRoles = ["user", "admin", "superadmin"];
 app.post(
   `${API_PREFIX}/products`,
   authenticate(authRoles),
+  upload.single("image"),
   productController.create.bind(productController)
-); // Create a new product
-
+);
 app.get(
   `${API_PREFIX}/products/analytics`,
   authenticate(["admin", "superadmin"]),
@@ -84,8 +85,9 @@ app.get(`${API_PREFIX}/products`, productController.list.bind(productController)
 app.put(
   `${API_PREFIX}/products/:id`,
   authenticate(authRoles),
+  upload.single("image"),
   productController.update.bind(productController)
-); // Update product by ID
+);
 
 app.delete(
   `${API_PREFIX}/products/:id`,

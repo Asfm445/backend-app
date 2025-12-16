@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ProductUseCase } from "../../usecase/product_usecase";
 import { Product } from "../../domain/models/product";
+import { enqueueImageJob } from "../queue/imageQueue";
 
 /**
  * @openapi
@@ -101,7 +102,7 @@ export class ProductController {
    *     requestBody:
    *       required: true
    *       content:
-   *         application/json:
+   *         multipart/form-data:
    *           schema:
    *             type: object
    *             required:
@@ -110,8 +111,10 @@ export class ProductController {
    *             properties:
    *               name:
    *                 type: string
-   *               imageUrl:
+   *               image:
    *                 type: string
+   *                 format: binary
+   *                 description: 'Image file to upload (field name: "image")'
    *               price:
    *                 type: number
    *               category:
@@ -138,10 +141,34 @@ export class ProductController {
     try {
       if (!req.user) return res.status(401).json({ error: "Authentication required" });
 
-      const product: Product = req.body;
+      const product: Product = req.body as any;
       product.ownerId = req.user.userId;
 
+      // Coerce numeric fields (Multer puts form fields in req.body as strings)
+      if (req.body.price !== undefined) {
+        const parsed = Number(req.body.price);
+        product.price = Number.isNaN(parsed) ? parsed : parsed;
+      }
+
+      // Create product synchronously (no sync image upload)
       const createdProduct = await this.productUseCase.create(product);
+
+      // Enqueue background job to upload image (only if we have an id and a file)
+      if (createdProduct.id && req.file && req.file.buffer) {
+        try {
+          await enqueueImageJob({
+            productId: createdProduct.id,
+            buffer: req.file.buffer,
+            originalName: req.file.originalname,
+            folder: "products",
+          });
+          console.log("Enqueued image job for product:", createdProduct.id);
+        } catch (e) {
+          console.error("Failed to enqueue image job:", e);
+          // Don't fail the request because of enqueue failure.
+        }
+      }
+
       res.status(201).json({ id: createdProduct.id });
     } catch (err) {
       next(err);
@@ -370,14 +397,16 @@ export class ProductController {
    *     requestBody:
    *       required: true
    *       content:
-   *         application/json:
+   *         multipart/form-data:
    *           schema:
    *             type: object
    *             properties:
    *               name:
    *                 type: string
-   *               imageUrl:
+   *               image:
    *                 type: string
+   *                 format: binary
+   *                 description: 'Optional image file to replace current image (field name: "image")'
    *               price:
    *                 type: number
    *               category:
@@ -396,8 +425,34 @@ export class ProductController {
     try {
       if (!req.user) return res.status(401).json({ error: "Authentication required" });
 
+      const updates: any = { ...req.body };
+
+      // Coerce numeric fields coming from multipart/form-data
+      if (req.body.price !== undefined) {
+        const parsed = Number(req.body.price);
+        updates.price = Number.isNaN(parsed) ? parsed : parsed;
+      }
+
       const requesterId = req.user.userId;
-      const updatedProduct = await this.productUseCase.update(req.params.id, req.body, requesterId);
+      // Apply non-image updates immediately
+      const updatedProduct = await this.productUseCase.update(req.params.id, updates, requesterId);
+
+      // If there's an uploaded file, enqueue a background job to upload and patch the product
+      if (req.file && req.file.buffer) {
+        try {
+          // req.params.id is a string (route param), so safe to pass
+          await enqueueImageJob({
+            productId: req.params.id,
+            buffer: req.file.buffer,
+            originalName: req.file.originalname,
+            folder: "products",
+          });
+          console.log("Enqueued image update job for product:", req.params.id);
+        } catch (e) {
+          console.error("Failed to enqueue image update job:", e);
+        }
+      }
+
       res.status(200).json(updatedProduct);
     } catch (err) {
       next(err);
