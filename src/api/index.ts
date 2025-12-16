@@ -16,6 +16,7 @@ import { ProductUseCase } from "../usecase/product_usecase"; // Import the produ
 import { ProductController } from "./controllers/product_controller"; // Import the product controller
 import { authenticate } from "./middlewares/auth_middlewares";
 import  { upload } from "./middlewares/upload"
+import { generalRateLimiter, bruteForceRateLimiter } from "./middlewares/rate_limitor";
 
 dotenv.config();
 
@@ -59,10 +60,10 @@ const productController = new ProductController(productUseCase); // Create an in
 // 🔹 Routes (versioned)
 // ----------------------
 // Users / Auth
-app.post(`${API_PREFIX}/users`, userController.register);
-app.post(`${API_PREFIX}/auth/login`, userController.login);
-app.post(`${API_PREFIX}/auth/refresh`, userController.refreshToken);
-app.use(`${API_PREFIX}/auth`, createGoogleAuthRouter(userController)); // google routes mounted under /api/v1/auth/*
+app.post(`${API_PREFIX}/users`,generalRateLimiter, userController.register);
+app.post(`${API_PREFIX}/auth/login`,bruteForceRateLimiter, userController.login);
+app.post(`${API_PREFIX}/auth/refresh`,bruteForceRateLimiter, userController.refreshToken);
+app.use(`${API_PREFIX}/auth`,generalRateLimiter, createGoogleAuthRouter(userController)); // google routes mounted under /api/v1/auth/*
 
 // Product routes (require authentication for mutating operations)
 const authRoles = ["user", "admin", "superadmin"];
@@ -71,27 +72,31 @@ app.post(
   `${API_PREFIX}/products`,
   authenticate(authRoles),
   upload.single("image"),
+  generalRateLimiter,
   productController.create.bind(productController)
 );
 app.get(
   `${API_PREFIX}/products/analytics`,
+  generalRateLimiter,
   authenticate(["admin", "superadmin"]),
   productController.analytics.bind(productController)
 );
 
-app.get(`${API_PREFIX}/products/:id`, productController.getById.bind(productController));
-app.get(`${API_PREFIX}/products`, productController.list.bind(productController));
+app.get(`${API_PREFIX}/products/:id`, generalRateLimiter,productController.getById.bind(productController));
+app.get(`${API_PREFIX}/products`,generalRateLimiter ,productController.list.bind(productController));
 
 app.put(
   `${API_PREFIX}/products/:id`,
   authenticate(authRoles),
   upload.single("image"),
+  generalRateLimiter,
   productController.update.bind(productController)
 );
 
 app.delete(
   `${API_PREFIX}/products/:id`,
   authenticate(authRoles),
+  generalRateLimiter,
   productController.delete.bind(productController)
 ); // Delete product by ID
 

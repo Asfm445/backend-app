@@ -49,7 +49,7 @@ export class UserUseCase {
     }
 
     // 🔐 Compare password using bcrypt
-    const isValidPassword = this.passHasher.compare(password, user.password)
+    const isValidPassword = await this.passHasher.compare(password, user.password)
     if (!isValidPassword) {
       throw new BadRequestError("Invalid password");
     }
