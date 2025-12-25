@@ -135,7 +135,8 @@ export class UserController {
  *               name:
  *                 type: string
  *               email:
- *                 type: string
+ *              
+  max: 100, // Limit each IP to   type: string
  *                 format: email
  *               password:
  *                 type: string

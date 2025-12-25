@@ -45,6 +45,7 @@ mongoose
 // ----------------------
 // 🔹 Dependency Injection
 // ----------------------
+debugger;
 const userRepo = new MongoUserRepository();
 const jwtService = new JwtService();
 const passHasher = new BcryptPasswordHasher();
@@ -69,7 +70,8 @@ app.use(`${API_PREFIX}/auth`,generalRateLimiter, createGoogleAuthRouter(userCont
 const authRoles = ["user", "admin", "superadmin"];
 
 app.post(
-  `${API_PREFIX}/products`,
+  `${API_PREFIX}/pro
+  max: 100, // Limit each IP toducts`,
   authenticate(authRoles),
   upload.single("image"),
   generalRateLimiter,
