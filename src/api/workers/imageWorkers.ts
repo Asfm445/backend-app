@@ -6,10 +6,10 @@ import mongoose from "mongoose";
 const repo = new MongoProductRepository();
 
 mongoose
-  .connect("mongodb://localhost:27017/userdb")
-  .then(() => console.log("✅ Connected to MongoDB"))
+  .connect(process.env.MONGODB_URL || "mongodb://localhost:27017/userdb")
+  .then(() => console.log("✅ Worker connected to MongoDB"))
   .catch((err) => {
-    console.error("❌ MongoDB connection failed:", err);
+    console.error("❌ Worker MongoDB connection failed:", err);
     process.exit(1);
   });
 

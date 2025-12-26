@@ -3,7 +3,7 @@ import jwt, { Secret, SignOptions, JwtPayload } from "jsonwebtoken";
 import { IJwtService } from "../../domain/interfaces/jwt_service";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
-import { Payload,Token, DecodedPayload } from "../../domain/models/user";
+import { Payload, Token, DecodedPayload } from "../../domain/models/user";
 dotenv.config();
 
 export class JwtService implements IJwtService {
@@ -33,8 +33,8 @@ export class JwtService implements IJwtService {
         return num * 24 * 60 * 60 * 1000;
       default:
         return 0;
-      }
     }
+  }
 
 
   signAccessToken(payload: Payload): string {
@@ -50,15 +50,15 @@ export class JwtService implements IJwtService {
       now.getTime() + this.parseExpiryToMs(this.refreshExpiry)
     );
 
-    const token_id=uuidv4()
+    const token_id = uuidv4()
 
-    const token=jwt.sign({id:token_id,...payload}, this.refreshSecret, options);
+    const token = jwt.sign({ id: token_id, ...payload }, this.refreshSecret, options);
     return {
-        id:token_id,
-        userId: payload.userId,
-        token:token,
-        createdAt: now,
-        expireAt: expireAt
+      id: token_id,
+      userId: payload.userId,
+      token: token,
+      createdAt: now,
+      expireAt: expireAt
 
     }
   }

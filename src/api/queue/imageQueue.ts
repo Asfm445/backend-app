@@ -12,7 +12,12 @@ export type ImageJobData = {
   folder?: string;
 };
 
-export const imageQueue = new Queue<ImageJobData>("image-queue", redisUrl);
+export const imageQueue = new Queue<ImageJobData>("image-queue", redisUrl, {
+  redis: {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  },
+});
 
 // helper to enqueue new jobs (accepts Buffer)
 export async function enqueueImageJob(data: { productId: string; buffer: Buffer; originalName?: string; folder?: string }) {
@@ -23,10 +28,10 @@ export async function enqueueImageJob(data: { productId: string; buffer: Buffer;
     folder: data.folder,
   };
   return imageQueue.add(payload, {
-  attempts: 3,
-  backoff: { type: "exponential", delay: 2000 },
-  removeOnComplete: true, // <-- MUST use this
-  removeOnFail: false,    // <-- optional but recommended
-});
+    attempts: 3,
+    backoff: { type: "exponential", delay: 2000 },
+    removeOnComplete: true, // <-- MUST use this
+    removeOnFail: false,    // <-- optional but recommended
+  });
 
 }

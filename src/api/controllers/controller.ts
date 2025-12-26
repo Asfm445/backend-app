@@ -112,7 +112,7 @@ export class UserController {
 
   // ✅ Google OAuth method
   async loginOrRegisterGoogleUser(email: string, name: string, googleId: string) {
-    const result=await this.userUseCase.loginOrRegisterGoogleUser(email, name, googleId);
+    const result = await this.userUseCase.loginOrRegisterGoogleUser(email, name, googleId);
     return result
   }
 }
@@ -135,8 +135,7 @@ export class UserController {
  *               name:
  *                 type: string
  *               email:
- *              
-  max: 100, // Limit each IP to   type: string
+ *                 type: string
  *                 format: email
  *               password:
  *                 type: string

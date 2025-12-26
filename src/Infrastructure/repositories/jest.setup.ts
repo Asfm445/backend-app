@@ -24,9 +24,9 @@ beforeEach(async () => {
 
 // After all tests, stop the in-memory MongoDB server and close the connection
 afterAll(async () => {
+  await mongoose.connection.dropDatabase();
+  await mongoose.connection.close();
   if (mongo) {
     await mongo.stop();
   }
-  await mongoose.connection.dropDatabase();
-  await mongoose.connection.close();
 });

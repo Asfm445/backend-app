@@ -5,7 +5,7 @@
 
 //   // Specify the environment (Node.js is appropriate for backend code)
 //   testEnvironment: 'node',
-  
+
 //   // Pattern for test files (looks for files ending in .test.ts or .spec.ts)
 //   testMatch: ["**/*.test.ts"],
 
@@ -32,7 +32,7 @@ module.exports = {
 
   // Specify the environment (Node.js is appropriate for backend code)
   testEnvironment: 'node',
-  
+
   // Pattern for test files (looks for files ending in .test.ts or .spec.ts)
   testMatch: ["**/*.test.ts"],
 
@@ -40,11 +40,11 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/src/Infrastructure/repositories/jest.setup.ts'], // Assuming your setup file is here
 
   // Increase the default test timeout to 30 seconds
-  testTimeout: 30000, 
+  testTimeout: 30000,
 
   // Configuration for ts-jest under transform
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
+    '^.+\\.[tj]s$': ['ts-jest', {
       tsconfig: 'tsconfig.json',
     }],
   },
@@ -54,4 +54,9 @@ module.exports = {
 
   // Which files/directories to ignore during testing
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
+
+  // Allow uuid to be transformed by ts-jest/babel
+  transformIgnorePatterns: [
+    "node_modules/(?!uuid)"
+  ],
 };
