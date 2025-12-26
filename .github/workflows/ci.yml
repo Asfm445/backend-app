@@ -1,0 +1,47 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check compilation
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+        env:
+          JWT_ACCESS_SECRET: CI_TEST_SECRET
+          JWT_REFRESH_SECRET: CI_TEST_REFRESH_SECRET
+          MONGODB_URL: mongodb://localhost:27017/unused-in-ci # Memory server will be used
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-docker-actions/setup-buildx@v1
+        continue-on-error: true # Workaround for some environments
+
+      - name: Build Docker image
+        run: docker compose build
