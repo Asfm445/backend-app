@@ -32,6 +32,7 @@ jobs:
           JWT_REFRESH_SECRET: CI_TEST_REFRESH_SECRET
           MONGODB_URL: mongodb://localhost:27017/unused-in-ci # Memory server will be used
 
+
   docker-build:
     runs-on: ubuntu-latest
     needs: test
@@ -40,8 +41,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: actions/setup-docker-actions/setup-buildx@v1
-        continue-on-error: true # Workaround for some environments
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
         run: docker compose build
