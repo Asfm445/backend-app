@@ -31,6 +31,32 @@ export class UserController {
     this.userUseCase = userUseCase;
   }
 
+  /**
+   * @openapi
+   * /register:
+   *   post:
+   *     tags:
+   *       - Auth
+   *     summary: Register a new user
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               password:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: User registered successfully
+   *       400:
+   *         description: Validation failed
+   */
   // ✅ Register user
   register = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -65,6 +91,30 @@ export class UserController {
     }
   };
 
+  /**
+   * @openapi
+   * /login:
+   *   post:
+   *     tags:
+   *       - Auth
+   *     summary: Login user
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               email:
+   *                 type: string
+   *               password:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Login successful
+   *       400:
+   *         description: Validation failed
+   */
   // ✅ Login user
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -90,6 +140,28 @@ export class UserController {
     }
   };
 
+  /**
+   * @openapi
+   * /refresh:
+   *   post:
+   *     tags:
+   *       - Auth
+   *     summary: Refresh access token
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               refreshToken:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Token refreshed
+   *       400:
+   *         description: Validation failed
+   */
   refreshToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const parsed = refreshSchema.parse(req.body);
@@ -112,7 +184,7 @@ export class UserController {
 
   // ✅ Google OAuth method
   async loginOrRegisterGoogleUser(email: string, name: string, googleId: string) {
-    const result=await this.userUseCase.loginOrRegisterGoogleUser(email, name, googleId);
+    const result = await this.userUseCase.loginOrRegisterGoogleUser(email, name, googleId);
     return result
   }
 }
