@@ -1,0 +1,48 @@
+services:
+  # API Web Service
+  - type: web
+    name: backend-api
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free # Change to starter or higher for production
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URL
+        fromConfigVar: MONGODB_URL
+      - key: REDIS_URL
+        fromConfigVar: REDIS_URL
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CLOUDINARY_CLOUD_NAME
+        fromConfigVar: CLOUDINARY_CLOUD_NAME
+      - key: CLOUDINARY_API_KEY
+        fromConfigVar: CLOUDINARY_API_KEY
+      - key: CLOUDINARY_API_SECRET
+        fromConfigVar: CLOUDINARY_API_SECRET
+
+  # Background Worker
+  - type: worker
+    name: backend-worker
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerCommand: node dist/src/api/workers/imageWorkers.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URL
+        fromConfigVar: MONGODB_URL
+      - key: REDIS_URL
+        fromConfigVar: REDIS_URL
+      - key: CLOUDINARY_CLOUD_NAME
+        fromConfigVar: CLOUDINARY_CLOUD_NAME
+      - key: CLOUDINARY_API_KEY
+        fromConfigVar: CLOUDINARY_API_KEY
+      - key: CLOUDINARY_API_SECRET
+        fromConfigVar: CLOUDINARY_API_SECRET
+
+# Managed Redis (Optional, or use external)
+# envVars can pull from these configs
