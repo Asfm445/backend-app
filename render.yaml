@@ -5,6 +5,7 @@ services:
     env: docker
     dockerfilePath: Dockerfile
     plan: free # Change to starter or higher for production
+    numInstances: 2
     envVars:
       - key: NODE_ENV
         value: production
@@ -30,6 +31,7 @@ services:
     dockerfilePath: Dockerfile
     dockerCommand: node dist/src/api/workers/imageWorkers.js
     plan: free
+    numInstances: 2
     envVars:
       - key: NODE_ENV
         value: production
