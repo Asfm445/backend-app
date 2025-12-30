@@ -45,6 +45,8 @@ services:
         fromConfigVar: CLOUDINARY_API_KEY
       - key: CLOUDINARY_API_SECRET
         fromConfigVar: CLOUDINARY_API_SECRET
+      - key: SWAGGER_BASE_URL
+        fromConfigVar: SWAGGER_BASE_URL
 
 # Managed Redis (Optional, or use external)
 # envVars can pull from these configs
