@@ -10,6 +10,7 @@ services:
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - AUTH_SERVICE_URL=http://auth-service:4001
     depends_on:
       - redis
     restart: always
@@ -17,6 +18,21 @@ services:
       - app-tier
     deploy:
       replicas: 2
+
+  auth-service:
+    build: ./auth-service
+    environment:
+      - PORT=4001
+      - MONGO_URI=${MONGODB_URL}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - AUTH_SERVICE_URL=http://auth-service:4001
+    ports:
+      - "4001:4001"
+    depends_on:
+      - redis
+    networks:
+      - app-tier
 
   nginx:
     image: nginx:alpine
@@ -26,6 +42,7 @@ services:
       - "4000:4000"
     depends_on:
       - api
+      - auth-service
     networks:
       - app-tier
 

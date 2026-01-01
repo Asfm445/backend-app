@@ -1,13 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { MongoUserRepository } from "../Infrastructure/repositories/MongoUserRepository";
-import { UserUseCase } from "../usecase/user_usecase";
-import { UserController } from "./controllers/controller";
-import { JwtService } from "../Infrastructure/services/jwt_service";
-import { BcryptPasswordHasher } from "../Infrastructure/services/password_hasher";
 import { errorHandler, requestLogger, responseLogger } from "./middleware";
-import { createGoogleAuthRouter } from "./routes/googleAuth";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./swagger";
 import { MongoProductRepository } from "../Infrastructure/repositories/MongoProductRepository";
@@ -28,16 +22,12 @@ app.use(responseLogger);
 const API_PREFIX = "/api/v1";
 
 // Serve swagger UI at /api/v1/docs
-app.use(`${API_PREFIX}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(`${API_PREFIX}/docs`, swaggerUi.serve as any, swaggerUi.setup(swaggerSpec) as any);
 
 // ----------------------
 // 🔹 Dependency Injection
 // ----------------------
-const userRepo = new MongoUserRepository();
-const jwtService = new JwtService();
-const passHasher = new BcryptPasswordHasher();
-const userUseCase = new UserUseCase(userRepo, jwtService, passHasher);
-const userController = new UserController(userUseCase);
+
 
 // Initialize product repository and use case
 const productRepo = new MongoProductRepository();
@@ -48,10 +38,7 @@ const productController = new ProductController(productUseCase);
 // 🔹 Routes (versioned)
 // ----------------------
 // Users / Auth
-app.post(`${API_PREFIX}/users`, generalRateLimiter, userController.register);
-app.post(`${API_PREFIX}/auth/login`, bruteForceRateLimiter, userController.login);
-app.post(`${API_PREFIX}/auth/refresh`, bruteForceRateLimiter, userController.refreshToken);
-app.use(`${API_PREFIX}/auth`, generalRateLimiter, createGoogleAuthRouter(userController));
+
 
 // Product routes
 const authRoles = ["user", "admin", "superadmin"];
@@ -90,7 +77,7 @@ app.delete(
 );
 
 // Google OAuth Route
-app.use("/auth", createGoogleAuthRouter(userController));
+
 
 // Error Handling
 app.use(errorHandler);

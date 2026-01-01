@@ -1,6 +1,6 @@
 // src/middleware/auth_middleware.ts
 import { Request, Response, NextFunction } from "express";
-
+import { JwtService } from "../../infrastructure/services/jwt_service";
 
 // Extend Express Request to include user payload
 declare global {
@@ -12,9 +12,8 @@ declare global {
 }
 
 // Factory function to create middleware with allowed roles
-// Factory function to create middleware with allowed roles
 export const authenticate = (allowedRoles: string[]) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -22,21 +21,12 @@ export const authenticate = (allowedRoles: string[]) => {
       }
 
       const token = authHeader.split(" ")[1];
+      const jwtService = new JwtService();
 
-      // Call auth-service to verify token
-      const response = await fetch(process.env.AUTH_SERVICE_URL + "/auth/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
+      // Verify token
+      const decoded = jwtService.verifyAccessToken(token) as any;
 
-      if (!response.ok) {
-        return res.status(401).json({ error: "Invalid or expired token" });
-      }
-
-      const decoded = await response.json();
-
-      if (!decoded.valid) {
+      if (!decoded) {
         return res.status(401).json({ error: "Invalid or expired token" });
       }
 
@@ -49,8 +39,7 @@ export const authenticate = (allowedRoles: string[]) => {
       req.user = { userId: decoded.userId, role: decoded.role };
       next();
     } catch (err) {
-      console.error("Auth middleware error:", err);
-      return res.status(500).json({ error: "Internal authentication error" });
+      return res.status(401).json({ error: "Invalid or expired token" });
     }
   };
 };
