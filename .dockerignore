@@ -9,3 +9,4 @@ Dockerfile
 coverage
 *.md
 frontend/
+auth-service
