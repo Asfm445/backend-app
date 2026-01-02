@@ -11,8 +11,10 @@ services:
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
       - AUTH_SERVICE_URL=http://auth-service:4001
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
       - redis
+      - rabbitmq
     restart: always
     networks:
       - app-tier
@@ -27,10 +29,10 @@ services:
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - AUTH_SERVICE_URL=http://auth-service:4001
-    ports:
-      - "4001:4001"
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
       - redis
+      - rabbitmq
     networks:
       - app-tier
 
@@ -56,8 +58,10 @@ services:
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
       - redis
+      - rabbitmq
     restart: always
     networks:
       - app-tier
@@ -66,6 +70,15 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
+    restart: always
+    networks:
+      - app-tier
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     restart: always
     networks:
       - app-tier

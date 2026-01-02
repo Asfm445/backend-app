@@ -21,8 +21,30 @@ app.use(responseLogger);
 
 const API_PREFIX = "/api/v1";
 
-// Serve swagger UI at /api/v1/docs
-app.use(`${API_PREFIX}/docs`, swaggerUi.serve as any, swaggerUi.setup(swaggerSpec) as any);
+// Serve raw swagger spec
+app.get(`${API_PREFIX}/swagger.json`, (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+});
+
+// Serve unified swagger UI at /docs
+const swaggerOptions = {
+    explorer: true,
+    swaggerOptions: {
+        urls: [
+            {
+                url: `${API_PREFIX}/swagger.json`,
+                name: "Main API"
+            },
+            {
+                url: "/auth/swagger.json",
+                name: "Auth Service"
+            }
+        ]
+    }
+};
+
+app.use(`/docs`, swaggerUi.serve as any, swaggerUi.setup(null, swaggerOptions) as any);
 
 // ----------------------
 // 🔹 Dependency Injection

@@ -1,9 +1,9 @@
-// src/usecase/user_usecase.ts
 import { UserRepository } from "../domain/interfaces/repo";
 import { User, Payload, UserRegister, DecodedPayload } from "../domain/models/user";
 import { BadRequestError, NotFoundError } from "../domain/interfaces/Exceptions";
 import { IJwtService } from "../domain/interfaces/jwt_service";
 import { PasswordHasher } from "../domain/interfaces/password_service";
+import { RabbitMQClient } from "../infrastructure/services/rabbitMQ";
 
 export class UserUseCase {
     private repo: UserRepository;
@@ -32,6 +32,15 @@ export class UserUseCase {
         user.password = await this.passHasher.hash(user.password)
 
         await this.repo.insert(user, role);
+
+        // 🚀 Publish User Registered Event
+        const rabbitMQ = RabbitMQClient.getInstance();
+        await rabbitMQ.publish("user-exchange", "user.registered", {
+            email: user.email,
+            name: user.name,
+            timestamp: new Date().toISOString()
+        });
+
         return "User registered successfully!";
     }
 

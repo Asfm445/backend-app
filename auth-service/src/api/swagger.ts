@@ -11,8 +11,8 @@ const options: swaggerJSDoc.Options = {
         // NOTE: do NOT include the API prefix here — keep only the host/origin.
         servers: [
             {
-                url: process.env.SWAGGER_BASE_URL ?? "http://localhost:4001",
-                description: "API server (origin only)",
+                url: process.env.SWAGGER_BASE_URL ?? "http://localhost:4000",
+                description: "API Gateway",
             },
         ],
         components: {
@@ -29,8 +29,8 @@ const options: swaggerJSDoc.Options = {
     apis: [
         "./src/api/controllers/*.ts",
         "./src/api/routes/*.ts",
-        "./dist/src/api/controllers/*.js",
-        "./dist/src/api/routes/*.js"
+        "./dist/api/controllers/*.js",
+        "./dist/api/routes/*.js"
     ],
 };
 

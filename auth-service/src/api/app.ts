@@ -20,6 +20,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+app.get("/auth/swagger.json", (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+});
 app.use("/docs", swaggerUi.serve as any, swaggerUi.setup(swaggerSpec) as any);
 // Dependencies
 const userRepo = new MongoUserRepository();
