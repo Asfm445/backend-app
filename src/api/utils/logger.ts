@@ -1,13 +1,39 @@
-import debug from "debug";
+import winston from 'winston';
 
-export const httpDebug = debug("app:http");
-export const appDebug = debug("app:app");
+const { combine, timestamp, json, colorize, printf } = winston.format;
 
-/**
- * Small convenience wrapper. Use DEBUG=app:* to enable debug output.
- */
+const consoleFormat = printf(({ level, message, timestamp, ...metadata }) => {
+  let msg = `${timestamp} [${level}] : ${message}`;
+  if (Object.keys(metadata).length > 0) {
+    msg += ` ${JSON.stringify(metadata)}`;
+  }
+  return msg;
+});
+
+export const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: combine(
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    json()
+  ),
+  transports: [
+    new winston.transports.Console({
+      format: combine(
+        colorize(),
+        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        consoleFormat
+      ),
+    }),
+  ],
+});
+
+// For compatibility with previous code if needed
 export const log = {
-  info: (...args: any[]) => appDebug(args.join(" ")),
-  error: (...args: any[]) => appDebug("ERROR", ...args),
-  debug: (...args: any[]) => appDebug("DEBUG", ...args),
+  info: (message: string, meta?: any) => logger.info(message, meta),
+  error: (message: string, meta?: any) => logger.error(message, meta),
+  debug: (message: string, meta?: any) => logger.debug(message, meta),
+  warn: (message: string, meta?: any) => logger.warn(message, meta),
 };
+
+export const httpDebug = (message: string) => logger.http(message);
+export const appDebug = (message: string) => logger.debug(message);

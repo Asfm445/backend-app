@@ -1,9 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { BadRequestError, NotFoundError } from "../../domain/interfaces/Exceptions";
 import { ZodError } from "zod";
+import { logger } from "../utils/logger";
 
-export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error(err);
+export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+    logger.error(err.message || "Internal Server Error", {
+        stack: err.stack,
+        method: req.method,
+        url: req.originalUrl,
+    });
 
     if (err instanceof NotFoundError) {
         return res.status(404).json({ error: err.message });

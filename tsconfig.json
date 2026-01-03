@@ -7,5 +7,11 @@
     "outDir": "./dist",
     "strict": true,
     "skipLibCheck": true
-  }
+  },
+  "exclude": [
+    "auth-service",
+    "frontend",
+    "dist",
+    "node_modules"
+  ]
 }

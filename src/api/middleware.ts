@@ -1,6 +1,6 @@
 import morgan from "morgan";
 import { Request, Response, NextFunction } from "express";
-import { httpDebug } from "../api/utils/logger";
+import { httpDebug, logger } from "../api/utils/logger";
 import {
   BadRequestError,
   NotFoundError,
@@ -44,9 +44,10 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
   }
 
   // Optional server-side logging
-  console.error(`[${new Date().toISOString()}] Error:`, {
-    message,
+  logger.error(message, {
     status,
+    method: req.method,
+    url: req.originalUrl,
     stack: err?.stack,
     details: payload.details,
   });

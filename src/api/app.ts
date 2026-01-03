@@ -19,6 +19,22 @@ app.use(express.json());
 app.use(requestLogger);
 app.use(responseLogger);
 
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "UP", service: "main-api", timestamp: new Date().toISOString() });
+});
+
+app.get("/ready", async (req, res) => {
+    const isMongoConnected = require("mongoose").connection.readyState === 1;
+    const status = isMongoConnected ? "READY" : "NOT_READY";
+    res.status(isMongoConnected ? 200 : 503).json({
+        status,
+        components: {
+            database: isMongoConnected ? "CONNECTED" : "DISCONNECTED",
+        },
+        timestamp: new Date().toISOString()
+    });
+});
+
 const API_PREFIX = "/api/v1";
 
 // Serve raw swagger spec

@@ -39,9 +39,21 @@ const googleAuthRouter = createGoogleAuthRouter(userController);
 app.use("/auth", authRouter);
 app.use("/auth", googleAuthRouter);
 
-// Health check
+// Health checks
 app.get("/health", (req, res) => {
-    res.status(200).json({ status: "OK", service: "auth-service" });
+    res.status(200).json({ status: "UP", service: "auth-service", timestamp: new Date().toISOString() });
+});
+
+app.get("/ready", async (req, res) => {
+    const isMongoConnected = require("mongoose").connection.readyState === 1;
+    const status = isMongoConnected ? "READY" : "NOT_READY";
+    res.status(isMongoConnected ? 200 : 503).json({
+        status,
+        components: {
+            database: isMongoConnected ? "CONNECTED" : "DISCONNECTED",
+        },
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.use(errorHandler);
